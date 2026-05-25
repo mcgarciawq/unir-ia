@@ -1,0 +1,25 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- Testing ---
+.pytest_cache/
+
+# --- Entorno virtual ---
+venv/
+.venv/
+env/
+.env
+
+
+# --- IDEs / Editores ---
+.vscode/
+
+
+# --- Datos / Sistema ---
+# data/*.json
+.DS_Store
