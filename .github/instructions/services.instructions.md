@@ -1,5 +1,5 @@
 ---
-applyTo: "src/services/**"
+applyTo: "src/services/**,src/ai/llm_client.py"
 ---
 # Services Layer: Persistence & TaskManager
 
@@ -22,3 +22,8 @@ This layer is responsible for low-level data operations and communication with t
 - **File Handling**: If `tasks.json` is missing or corrupted, `load_tasks` must return an empty list `[]` instead of crashing.
 - **Independence**: This service must not contain API logic or Pydantic schemas; it only handles the `Task` domain model.
 - **Directory Safety**: Ensure the `data/` directory exists before writing the JSON file.
+
+## LLM Service
+- **File**: `src/ai/llm_client.py` — provider client only (see `ai.instructions.md`).
+- **Not in TaskManager**: Do not add OpenAI calls to `TaskManager`; keep persistence and LLM concerns separate.
+- **Testing**: Design `LLMService` so tests can monkeypatch `complete()` without network access.

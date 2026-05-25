@@ -1,0 +1,302 @@
+{
+  "info": {
+    "name": "Task Manager API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing Task Manager CRUD and AI endpoints. Run Create Task first to store the generated {{taskId}}, then use Get/Update/Delete. AI endpoints also persist enriched task results."
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Implement API tests\",\n  \"description\": \"Create and test all project endpoints.\",\n  \"priority\": \"high\",\n  \"effort_hours\": 5.0,\n  \"status\": \"pending\",\n  \"assigned_to\": \"Developer\",\n  \"category\": \"Documentation\",\n  \"risk_analysis\": \"No major risks.\",\n  \"risk_mitigation\": \"Follow established guidelines.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/tasks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tasks",
+            ""
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Task created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set(\"taskId\", response.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "List Tasks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tasks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tasks",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Task by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tasks/{{taskId}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tasks",
+            "{{taskId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Task",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"in_progress\",\n  \"effort_hours\": 6.0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/tasks/{{taskId}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tasks",
+            "{{taskId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Task",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tasks/{{taskId}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tasks",
+            "{{taskId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AI Describe Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Improve onboarding flow\",\n  \"description\": \"\",\n  \"priority\": \"medium\",\n  \"effort_hours\": 2.0,\n  \"status\": \"pending\",\n  \"assigned_to\": \"Product Team\",\n  \"category\": \"Frontend\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/tasks/describe",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "ai",
+            "tasks",
+            "describe"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AI Categorize Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Refactor authentication module\",\n  \"description\": \"Refactor login and token flows for clarity.\",\n  \"priority\": \"high\",\n  \"effort_hours\": 4.0,\n  \"status\": \"in_progress\",\n  \"assigned_to\": \"Backend Team\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/tasks/categorize",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "ai",
+            "tasks",
+            "categorize"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AI Estimate Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Build analytics dashboard\",\n  \"description\": \"Design data visualizations and report metrics.\",\n  \"priority\": \"medium\",\n  \"effort_hours\": 0.0,\n  \"status\": \"pending\",\n  \"assigned_to\": \"Analytics Team\",\n  \"category\": \"Frontend\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/tasks/estimate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "ai",
+            "tasks",
+            "estimate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AI Audit Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Upgrade logging system\",\n  \"description\": \"Review current logging strategy and add observability improvements.\",\n  \"priority\": \"high\",\n  \"effort_hours\": 3.5,\n  \"status\": \"in_review\",\n  \"assigned_to\": \"Ops Team\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/tasks/audit",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "ai",
+            "tasks",
+            "audit"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "taskId",
+      "value": "create-task-first"
+    }
+  ]
+}

@@ -1,7 +1,10 @@
 import json
-from typing import List
+import os
+import tempfile
+
+from src.core.config import DATA_PATH
 from src.models.task import Task
-from src.core.config import DATA_PATH 
+
 
 class TaskManager:
     """
@@ -10,7 +13,7 @@ class TaskManager:
     """
 
     @staticmethod
-    def load_tasks() -> List[Task]:
+    def load_tasks() -> list[Task]:
         """
         Load tasks from JSON and convert them to Task objects.
         Handles missing or corrupt files by returning an empty list.
@@ -23,20 +26,18 @@ class TaskManager:
                 raw_tasks = json.load(file)
             # Conversión obligatoria de dict a objeto Task
             return [Task.from_dict(task_data) for task_data in raw_tasks]
-        except (json.JSONDecodeError, TypeError, ValueError):
-            # Seguridad: evita que la API se rompa si el JSON está mal formado[cite: 1]
+        except json.JSONDecodeError:
             return []
 
     @staticmethod
-    def save_tasks(tasks: List[Task]) -> None:
-        """
-        Persist the list of Task objects into the JSON storage file[cite: 1].
-        Converts objects back to dictionaries for JSON serialization[cite: 1].
-        """
-        # Asegura que la carpeta data exista antes de escribir
+    def save_tasks(tasks: list[Task]) -> None:
         DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-        
-        with open(DATA_PATH, "w", encoding="utf-8") as file:
-            # Uso de to_dict() requerido por el entregable[cite: 1]
-            json_data = [task.to_dict() for task in tasks]
-            json.dump(json_data, file, indent=4)
+
+        json_data = [task.to_dict() for task in tasks]
+
+        # Escritura segura
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as tmp:
+            json.dump(json_data, tmp, indent=4)
+            temp_name = tmp.name
+
+        os.replace(temp_name, DATA_PATH)

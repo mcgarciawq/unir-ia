@@ -21,10 +21,30 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Azure OpenAI Configuration
+
+Edit `src/.env` file in the project root with the following values:
+
+```ini
+AZURE_OPENAI_API_KEY=your-api-key-here
+AZURE_OPENAI_API_VERSION=2024-02-15-preview
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT_NAME=your-deployment-name
+AZURE_OPENAI_TEMPERATURE=0.7
+AZURE_OPENAI_MAX_TOKENS=2048
+AZURE_OPENAI_TOP_P=0.9
+AZURE_OPENAI_FREQUENCY_PENALTY=
+AZURE_OPENAI_PRESENCE_PENALTY=
+AZURE_OPENAI_SUPPORTED_PARAMS=
+```
+
+The application loads these values automatically from `.env` when it starts.
+Leave `AZURE_OPENAI_SUPPORTED_PARAMS` empty for models that reject optional generation parameters such as `temperature`, `top_p`, or `max_tokens`.
+
 ## Run
 
 ```bash
-uvicorn src.main:app --reload
+python -m uvicorn src.main:app --reload
 ```
 
 ## API documentation
@@ -58,6 +78,10 @@ Returns a simple API status response with JSON body:
 | GET | `/tasks/{id}` | Returns task by ID. |
 | PUT | `/tasks/{id}` | Updates an existing task. |
 | DELETE | `/tasks/{id}` | Deletes a task. |
+| POST | `/ai/tasks/describe` | Generate or enrich task description and persist the task. |
+| POST | `/ai/tasks/categorize` | Classify task category and persist the task. |
+| POST | `/ai/tasks/estimate` | Estimate `effort_hours` and persist the task. |
+| POST | `/ai/tasks/audit` | Generate `risk_analysis` and `risk_mitigation` and persist the task. |
 
 ## Task payload
 
@@ -70,9 +94,22 @@ Use this body for `POST /tasks/` and optional fields for `PUT /tasks/{id}`:
   "priority": "high",
   "effort_hours": 3.5,
   "status": "pending",
-  "assigned_to": "Product Team"
+  "assigned_to": "Product Team",
+  "category": "Backend",
+  "risk_analysis": "",
+  "risk_mitigation": ""
 }
 ```
+
+For manual curl tests, keep the trailing slash in collection endpoints:
+
+```bash
+curl -s http://127.0.0.1:8000/tasks/
+```
+
+Task IDs are generated from the current contents of `data/tasks.json`, so do not assume the next task will be `1`. Use an existing ID from `GET /tasks/` or capture the `id` returned by `POST /tasks/` before calling `GET`, `PUT`, or `DELETE`.
+
+AI endpoints also persist their enriched task results. If the request includes an existing `id`, the stored task is updated. If no `id` is provided, a new task is created with the next available ID.
 
 ## Persistence
 
@@ -110,7 +147,7 @@ The project includes:
 - **Solution:** Make sure you're running pytest from the project root directory where `tests/` folder is located. The `tests/conftest.py` file will automatically configure the Python path.
 
 **Problem:** Port 8000 already in use
-- **Solution:** Use a different port: `uvicorn src.main:app --port 8001`
+- **Solution:** Use a different port: `python -m uvicorn src.main:app --port 8001`
 
 **Problem:** Virtual environment not activating
 - **Solution:** Ensure you're using the correct Python version and the `.venv` folder exists in the project root.

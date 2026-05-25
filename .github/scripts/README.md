@@ -27,16 +27,18 @@ This directory contains automated scripts for project maintenance.
 ### What it does
 
 1. **Parses .gitignore**: Reads all patterns and converts them to `find` exclusions
-2. **Counts files**: Shows how many files will be included
-3. **Creates ZIP**: Uses `find` + `zip -@` for clean packaging
-4. **Verifies**: Ensures no excluded files made it into the ZIP
-5. **Reports**: Provides success/failure feedback
+2. **Excludes local `.env` from the file list** (even if not gitignored)
+3. **Counts files**: Shows how many files will be included
+4. **Creates ZIP**: Uses `find` + `zip -@` for clean packaging
+5. **Adds obfuscated `.env`**: Copies `.env` into the ZIP with masked `API_KEY` / `SECRET` / `TOKEN` values (local file unchanged)
+6. **Verifies**: Ensures no excluded files made it into the ZIP and checks `.env` presence
+7. **Reports**: Provides success/failure feedback
 
 ### Example Output
 
 ```
 [INFO] Starting automated project packaging...
-[INFO] Output file: m2_proyecto_carmen_garcia-peral.zip
+[INFO] Output file: m3_proyecto_carmen_garcia-peral.zip
 [INFO] Parsing .gitignore patterns...
 [INFO]   Processing: __pycache__/
 [INFO]   Processing: *.py[cod]
@@ -46,8 +48,8 @@ This directory contains automated scripts for project maintenance.
 [INFO]   Processing: .DS_Store
 [INFO] Generated exclusion patterns: -not -path "./__pycache__/*" -not -name "*.pyc" ...
 [INFO] Files to be included: 37
-[INFO] Creating ZIP file: m2_proyecto_carmen_garcia-peral.zip
-[SUCCESS] ZIP file created successfully: m2_proyecto_carmen_garcia-peral.zip
+[INFO] Creating ZIP file: m3_proyecto_carmen_garcia-peral.zip
+[SUCCESS] ZIP file created successfully: m3_proyecto_carmen_garcia-peral.zip
 [INFO] Verifying ZIP contents...
 [SUCCESS] No excluded files found in ZIP ✓
 [INFO] Total files in ZIP: 37

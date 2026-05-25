@@ -15,5 +15,19 @@ class StatusEnum(str, Enum):
 
     pending = "pending"
     in_progress = "in_progress"
+    blocked = "blocked"
     in_review = "in_review"
     completed = "completed"
+
+
+class CategoryEnum(str, Enum):
+    """Allowed category values for a task."""
+
+    frontend = "Frontend"
+    backend = "Backend"
+    testing = "Testing"
+    infra = "Infra"
+    research = "Research"
+    design = "Design"
+    documentation = "Documentation"
+    other = "Other"

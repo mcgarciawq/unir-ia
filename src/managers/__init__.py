@@ -1,3 +1,3 @@
-from .task_manager_controller import TaskManagerController
+from .task_service import TaskService
 
-__all__ = ["TaskManagerController"]
+__all__ = ["TaskService"]
