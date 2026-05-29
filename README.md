@@ -23,7 +23,7 @@ pip install -r requirements.txt
 
 ## Azure OpenAI Configuration
 
-Edit `src/.env` file in the project root with the following values:
+Edit `.env.example` and rename to `.env` file in the project root with the following values:
 
 ```ini
 AZURE_OPENAI_API_KEY=your-api-key-here

@@ -85,4 +85,4 @@ If a parameter is **not** in `AZURE_OPENAI_SUPPORTED_PARAMS`, it is never sent t
 
 ---
 **Current Task**: Entregable 2 complete — maintenance and final cleanup
-**AI Instruction**: This file is the source of truth for endpoints and delivery phases. Use `.github/instructions/ai.instructions.md` for LLM client, prompts, and `build_completion_kwargs()`. Do not modify `.github/plans/plan.md` (entregable 1 archive).
+**AI Instruction**: This file is the source of truth for endpoints and delivery phases. Use `.github/instructions/ai.instructions.md` for LLM client, prompts, and `build_completion_kwargs()`. Do not modify `.github/plans/plan-1.md` (entregable 1 archive).

@@ -7,6 +7,6 @@ Read and execute **Phase 1** of `.github/plans/plan-2.md`.
 
 Follow all rules in `.github/instructions/`.
 
-Do **not** modify `.github/plans/plan.md`. Update progress only in `.github/plans/plan-2.md` after each validated step.
+Do **not** modify `.github/plans/plan-1.md`. Update progress only in `.github/plans/plan-2.md` after each validated step.
 
 Stop after Phase 1 and wait for user OK before continue to the next steps in `.github/plans/plan-2.md`"

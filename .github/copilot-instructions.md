@@ -1,13 +1,12 @@
 # Master AI Protocol: FastAPI & SOLID Project
 
 ## 🤖 Interaction, Protocol & Memory
-- **Active plan (entregable 2)**: Always consult `.github/plans/plan-2.md` for current state and next step.
-- **Archived plan (entregable 1)**: `.github/plans/plan.md` is read-only reference for the completed CRUD baseline. Do not edit it.
+- **Active plan (entregable 3)**: Always consult `.github/plans/plan-3.md` for current state and next step.
 - **Deliverable spec**: Read `entregable2.md` for rubric-aligned requirements (four AI endpoints, new Task fields).
 - **Strict Flow**: You MUST NOT proceed to a new step without explicit user validation 
 ("OK").
 - **Auto-Update**: AEvery time the user validates a step, your first action must be to 
-update `.github/plans/plan-2.md`, marking the task as completed [x] and updating the "Project Status" section.
+update `.github/plans/plan-3.md`, marking the task as completed [x] and updating the "Project Status" section.
 
 ## 🛠️ Global Standards
 - **Language**: 100% English for code, comments, and documentation (prompts to the LLM may be Spanish).
@@ -18,9 +17,9 @@ update `.github/plans/plan-2.md`, marking the task as completed [x] and updating
 - **Error Clearance**: Before marking a step complete, run editor diagnostics and/or `get_errors` on touched files and resolve all Pylance/type issues so the workspace reports no errors.
 
 ## ⚠️ Submission & Compliance Rules
-- **Naming Convention**: The final output must be structured to generate `m3_proyecto_nombre_apellido.zip`.
+- **Naming Convention**: The final output must be structured to generate `m4_proyecto_nombre_apellido.zip`.
 - **CRUD preserved**: Existing endpoints must keep working after model extension (backward-compatible JSON loading).
-- **Secrets**: Use a single project-root `.env` for Azure credentials (see `core.instructions.md`). The submission ZIP **includes** `.env` with obfuscated `API_KEY` / `SECRET` / `TOKEN` values via `package.sh`. Never hardcode keys in `.py` files.
+- **Secrets**: Use a single project-root `.env` for Azure credentials (see `core.instructions.md`). Never hardcode keys in `.py` files.
 - **Response consistency**: Every endpoint returns JSON, including errors (`{"detail": "..."}`).
 - **Static persistence**: `TaskManager` keeps strictly static methods for JSON I/O.
 - **Endpoint persistence**: Any endpoint that creates, enriches, or changes task data must persist the resulting task in `data/tasks.json` through `TaskManager`; endpoints must not return task changes that only exist in memory.

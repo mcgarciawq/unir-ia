@@ -1,9 +1,6 @@
 ---
 applyTo: "src/ai/**,src/managers/ai_task_manager.py,src/api/ai_tasks.py,src/core/completion_params.py"
 ---
-# AI / LLM Layer Standards (Entregable 2)
-
-**Endpoint contracts, preconditions, and HTTP status codes** are defined in `.github/plans/plan-2.md` (section *AI Endpoints Specification*). This file covers LLM implementation only.
 
 ## Architecture
 - **Separation**: LLM HTTP calls live in `src/ai/llm_client.py`. Prompt text in `src/ai/prompts.py`. Orchestration in `src/managers/ai_task_manager.py`. HTTP in `src/api/ai_tasks.py`.

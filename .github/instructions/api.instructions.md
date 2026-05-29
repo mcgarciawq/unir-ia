@@ -16,7 +16,6 @@ applyTo: "src/api/**"
 - **Error Handling**: Always raise `fastapi.HTTPException` with clear JSON details for 400 (Not Found) or 400 (Bad Request) errors.
 
 ## AI Endpoints
-- **Specification**: Full contracts, preconditions, and status codes → `.github/plans/plan-2.md` (*AI Endpoints Specification*).
 - **Router**: `src/api/ai_tasks.py`, `prefix="/ai/tasks"`, `tags=["AI Tasks"]`; register in `src/main.py`.
 - **Delegation**: Routes call `AITaskManager` only, not the LLM client.
 - **Persistence required**: Every endpoint that creates, enriches, or modifies task data must persist the resulting task in `data/tasks.json` via `TaskManager`. If the request includes an existing `id`, update that stored task; otherwise create a new task with the next available ID.
