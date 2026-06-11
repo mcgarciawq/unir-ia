@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from openai import AzureOpenAI
 
@@ -36,18 +36,18 @@ def complete(system_prompt: str, user_prompt: str, **overrides: Any) -> str:
     try:
         model = str(config.AZURE_OPENAI_DEPLOYMENT_NAME)
 
-        call_kwargs = {
+        call_kwargs: dict[str, Any] = {
             "model": model,
             "messages": messages,
         }
 
-        response = client.chat.completions.create(**call_kwargs, **kwargs)
+        response = cast(Any, client.chat.completions.create(**call_kwargs, **kwargs))
 
     except Exception as error:
-        raise LLMCallError("Azure OpenAI request failed.") from error
+        raise LLMCallError(f"Azure OpenAI request failed: {error}") from error
 
     try:
-        content = response.choices[0].message.content
+        content = cast(str | None, response.choices[0].message.content)
 
         if content is None:
             raise LLMCallError("Empty response content from Azure OpenAI.")

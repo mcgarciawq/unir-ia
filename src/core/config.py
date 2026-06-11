@@ -44,6 +44,20 @@ _supported_params_raw: str = os.getenv(
 )
 AZURE_OPENAI_SUPPORTED_PARAMS: list[str] = [p.strip() for p in _supported_params_raw.split(",") if p.strip()]
 
+# SQLAlchemy / MySQL configuration
+MYSQL_HOST: str = os.getenv("MYSQL_HOST", "localhost")
+MYSQL_PORT: int = int(os.getenv("MYSQL_PORT", "3306"))
+MYSQL_USER: str = os.getenv("MYSQL_USER", "root")
+MYSQL_PASSWORD: str = os.getenv("MYSQL_PASSWORD", "")
+MYSQL_DATABASE: str = os.getenv("MYSQL_DATABASE", "task_manager")
+DATABASE_URL: str | None = os.getenv("DATABASE_URL")
+SQLALCHEMY_DATABASE_URI: str = os.getenv(
+    "SQLALCHEMY_DATABASE_URI",
+    DATABASE_URL
+    or f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}",
+)
+SQLALCHEMY_ECHO: bool = os.getenv("SQLALCHEMY_ECHO", "false").strip().lower() in ("1", "true", "yes")
+
 
 def is_azure_openai_configured() -> bool:
     """

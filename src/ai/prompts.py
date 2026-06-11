@@ -1,5 +1,41 @@
 from src.models.task import Task
 from src.models.enums import CategoryEnum
+from src.models.user_story import UserStory
+
+
+def build_user_story_prompt(prompt: str) -> str:
+    """Create a prompt for generating a full user story from a short idea."""
+    return (
+        "You are a product owner. Generate a complete user story in valid JSON format with the following keys: "
+        "project, role, goal, reason, description, priority, story_points, effort_hours. "
+        "Use priority values: low, medium, high, blocking. Use numeric story_points between 1 and 8. "
+        "Write only JSON with these keys, do not include any extra text.\n\n"
+        f"Prompt: {prompt}"
+    )
+
+
+def build_tasks_from_story_prompt(user_story: UserStory, task_count: int = 3) -> str:
+    """Create a prompt for generating tasks from a user story."""
+    categories = ", ".join([category.value for category in CategoryEnum])
+
+    return (
+        "You are a project manager converting a user story into a list of actionable tasks. "
+        "Generate exactly "
+        f"{task_count} tasks in valid JSON array format. Each task object must include title, description, priority, "
+        "effort_hours, status, assigned_to, and category. Use allowed priorities: low, medium, high, blocking. "
+        "Use allowed statuses: pending, in_progress, blocked, in_review, completed. "
+        f"Use allowed categories exactly as written: {categories}. "
+        "Respond with JSON only and no additional commentary.\n\n"
+        "User story:\n"
+        f"Project: {user_story.project}\n"
+        f"Role: {user_story.role}\n"
+        f"Goal: {user_story.goal}\n"
+        f"Reason: {user_story.reason}\n"
+        f"Description: {user_story.description}\n"
+        f"Priority: {user_story.priority.value}\n"
+        f"Story points: {user_story.story_points}\n"
+        f"Effort hours: {user_story.effort_hours}\n"
+    )
 
 
 def build_describe_prompt(task: Task) -> str:

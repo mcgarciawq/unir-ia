@@ -1,33 +1,37 @@
+# type: ignore
+from typing import Any, Iterable, List
 from fastapi.testclient import TestClient
 
 from src.main import app
+from src.models.task import Task
 from src.services.task_manager import TaskManager
 
 client = TestClient(app)
 
 
-def test_health_check():
+def test_health_check() -> None:
     response = client.get("/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "message": "Task Manager API is running."}
 
 
-def test_create_get_update_delete_task(monkeypatch):
-    tasks = []
+def test_create_get_update_delete_task(monkeypatch: Any) -> None:
+    monkeypatch.setenv("TESTING_USE_JSON", "true")
+    tasks: List[Task] = []
 
-    def load_tasks():
+    def load_tasks() -> List[Task]:
         return tasks
 
-    def save_tasks(updated_tasks):
-        updated = list(updated_tasks)
+    def save_tasks(updated_tasks: Iterable[Task]) -> None:
+        updated: List[Task] = list(updated_tasks)
         tasks.clear()
         tasks.extend(updated)
 
     monkeypatch.setattr(TaskManager, "load_tasks", staticmethod(load_tasks))
     monkeypatch.setattr(TaskManager, "save_tasks", staticmethod(save_tasks))
 
-    create_payload = {
+    create_payload: dict[str, Any] = {
         "title": "Integration Task",
         "description": "Task for integration testing.",
         "priority": "low",

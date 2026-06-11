@@ -11,6 +11,7 @@ client = TestClient(app)
 
 @pytest.fixture
 def stored_tasks(monkeypatch):
+    monkeypatch.setenv("TESTING_USE_JSON", "true")
     tasks = []
 
     def load_tasks():

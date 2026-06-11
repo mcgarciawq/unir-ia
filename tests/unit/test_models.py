@@ -24,10 +24,14 @@ def test_task_to_dict_and_from_dict():
     assert task.category == ""
     assert task.risk_analysis == ""
     assert task.risk_mitigation == ""
+    assert task.user_story_id is None
+    assert task.created_at is None
     expected_data: dict[str, object] = data | {
         "category": None,
         "risk_analysis": "",
         "risk_mitigation": "",
+        "user_story_id": None,
+        "created_at": None,
     }
     assert task.to_dict() == expected_data
 

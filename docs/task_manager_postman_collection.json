@@ -12,12 +12,8 @@
         "header": [],
         "url": {
           "raw": "{{base_url}}/health",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "health"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["health"]
         }
       },
       "response": []
@@ -43,13 +39,8 @@
         },
         "url": {
           "raw": "{{base_url}}/tasks/",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "tasks",
-            ""
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["tasks", ""]
         }
       },
       "response": [],
@@ -57,6 +48,7 @@
         {
           "listen": "test",
           "script": {
+            "type": "text/javascript",
             "exec": [
               "pm.test(\"Task created\", function () {",
               "    pm.response.to.have.status(201);",
@@ -64,11 +56,92 @@
               "",
               "const response = pm.response.json();",
               "pm.collectionVariables.set(\"taskId\", response.id);"
-            ],
-            "type": "text/javascript"
+            ]
           }
         }
       ]
+    },
+    {
+      "name": "List User Stories",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/user-stories",
+          "host": ["{{base_url}}"],
+          "path": ["user-stories"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create User Story from Prompt",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "prompt",
+              "value": "Build a mobile onboarding flow for new users",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/user-stories",
+          "host": ["{{base_url}}"],
+          "path": ["user-stories"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Generate Tasks for Story",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "task_count",
+              "value": "3",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/user-stories/{{storyId}}/generate-tasks",
+          "host": ["{{base_url}}"],
+          "path": ["user-stories", "{{storyId}}", "generate-tasks"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Tasks for Story",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/user-stories/{{storyId}}/tasks",
+          "host": ["{{base_url}}"],
+          "path": ["user-stories", "{{storyId}}", "tasks"]
+        }
+      },
+      "response": []
     },
     {
       "name": "List Tasks",
@@ -77,13 +150,8 @@
         "header": [],
         "url": {
           "raw": "{{base_url}}/tasks/",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "tasks",
-            ""
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["tasks", ""]
         }
       },
       "response": []
@@ -95,13 +163,8 @@
         "header": [],
         "url": {
           "raw": "{{base_url}}/tasks/{{taskId}}",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "tasks",
-            "{{taskId}}"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["tasks", "{{taskId}}"]
         }
       },
       "response": []
@@ -127,13 +190,8 @@
         },
         "url": {
           "raw": "{{base_url}}/tasks/{{taskId}}",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "tasks",
-            "{{taskId}}"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["tasks", "{{taskId}}"]
         }
       },
       "response": []
@@ -145,13 +203,8 @@
         "header": [],
         "url": {
           "raw": "{{base_url}}/tasks/{{taskId}}",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "tasks",
-            "{{taskId}}"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["tasks", "{{taskId}}"]
         }
       },
       "response": []
@@ -177,14 +230,8 @@
         },
         "url": {
           "raw": "{{base_url}}/ai/tasks/describe",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "ai",
-            "tasks",
-            "describe"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["ai", "tasks", "describe"]
         }
       },
       "response": []
@@ -210,14 +257,8 @@
         },
         "url": {
           "raw": "{{base_url}}/ai/tasks/categorize",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "ai",
-            "tasks",
-            "categorize"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["ai", "tasks", "categorize"]
         }
       },
       "response": []
@@ -243,14 +284,8 @@
         },
         "url": {
           "raw": "{{base_url}}/ai/tasks/estimate",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "ai",
-            "tasks",
-            "estimate"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["ai", "tasks", "estimate"]
         }
       },
       "response": []
@@ -276,14 +311,8 @@
         },
         "url": {
           "raw": "{{base_url}}/ai/tasks/audit",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "ai",
-            "tasks",
-            "audit"
-          ]
+          "host": ["{{base_url}}"],
+          "path": ["ai", "tasks", "audit"]
         }
       },
       "response": []
@@ -297,6 +326,10 @@
     {
       "key": "taskId",
       "value": "create-task-first"
+    },
+    {
+      "key": "storyId",
+      "value": "create-story-first"
     }
   ]
 }

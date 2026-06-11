@@ -1,7 +1,46 @@
-from dataclasses import dataclass
-from typing import Any
+from __future__ import annotations
 
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, TYPE_CHECKING
+
+from sqlalchemy import DateTime, Enum as SQLEnum, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from src.core.database import Base
 from src.models.enums import CategoryEnum, PriorityEnum, StatusEnum
+
+if TYPE_CHECKING:
+    from src.models.user_story import UserStory
+
+
+class TaskORM(Base):
+    """SQLAlchemy model representing a task persisted to MySQL."""
+
+    __tablename__ = "tasks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    title: Mapped[str] = mapped_column(String(256), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    priority: Mapped[PriorityEnum] = mapped_column(
+        SQLEnum(PriorityEnum, name="task_priority_enum", native_enum=False),
+        nullable=False,
+        default=PriorityEnum.medium,
+    )
+    effort_hours: Mapped[float] = mapped_column(Float, nullable=False)
+    status: Mapped[StatusEnum] = mapped_column(
+        SQLEnum(StatusEnum, name="task_status_enum", native_enum=False),
+        nullable=False,
+        default=StatusEnum.pending,
+    )
+    assigned_to: Mapped[str] = mapped_column(String(128), nullable=False)
+    category: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    risk_analysis: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    risk_mitigation: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    user_story_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user_stories.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    user_story: Mapped["UserStory"] = relationship("UserStory", back_populates="tasks")
 
 
 @dataclass
@@ -18,6 +57,8 @@ class Task:
     category: str = ""
     risk_analysis: str = ""
     risk_mitigation: str = ""
+    user_story_id: int | None = None
+    created_at: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the Task instance into a dictionary for JSON serialization."""
@@ -32,10 +73,12 @@ class Task:
             "category": self.category or None,
             "risk_analysis": self.risk_analysis,
             "risk_mitigation": self.risk_mitigation,
+            "user_story_id": self.user_story_id,
+            "created_at": self.created_at,
         }
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict[str, Any]):
         priority_raw = data.get("priority", "medium")
         status_raw = data.get("status", "pending")
         category_raw = data.get("category", "")
@@ -66,4 +109,6 @@ class Task:
             category=category,
             risk_analysis=data.get("risk_analysis", ""),
             risk_mitigation=data.get("risk_mitigation", ""),
+            user_story_id=data.get("user_story_id"),
+            created_at=data.get("created_at"),
         )

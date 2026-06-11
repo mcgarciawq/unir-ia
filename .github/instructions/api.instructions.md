@@ -14,6 +14,7 @@ applyTo: "src/api/**"
     - `DELETE /tasks/{id}`: Delete task.
 - **Documentation**: Ensure the app exposes FastAPI's OpenAPI docs for a Swagger UI catalog, available at `/docs` after the server starts.
 - **Error Handling**: Always raise `fastapi.HTTPException` with clear JSON details for 400 (Not Found) or 400 (Bad Request) errors.
+- **Postman Collection**: Whenever a new endpoint is added to the API, update the Postman collection file `docs/task_manager_postman_collection.json` so the collection stays in sync with the code. Nota: siempre que se añada un nuevo endpoint se debe actualizar la colección de Postman en `docs/task_manager_postman_collection.json`.
 
 ## AI Endpoints
 - **Router**: `src/api/ai_tasks.py`, `prefix="/ai/tasks"`, `tags=["AI Tasks"]`; register in `src/main.py`.

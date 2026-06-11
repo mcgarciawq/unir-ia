@@ -1,11 +1,19 @@
+from datetime import datetime
+
 from src.models.enums import CategoryEnum
-from src.models.schemas import AITaskPayload, AITaskResponse, TaskResponse
+from src.models.schemas import AITaskPayload, AITaskResponse, TaskSchema, UserStorySchema
 from src.models.task import Task
+from src.models.user_story import UserStory
 
 
-def task_to_response(task: Task) -> TaskResponse:
+def user_story_to_response(story: UserStory) -> UserStorySchema:
+    """Convert a user story ORM object into the public response schema."""
+    return UserStorySchema.model_validate(story)
+
+
+def task_to_response(task: Task) -> TaskSchema:
     """Convert a domain task into the public CRUD response schema."""
-    return TaskResponse(**task.to_dict())
+    return TaskSchema(**task.to_dict())
 
 
 def ai_payload_to_task(payload: AITaskPayload) -> Task:
@@ -21,6 +29,8 @@ def ai_payload_to_task(payload: AITaskPayload) -> Task:
         category=payload.category.value if payload.category is not None else "",
         risk_analysis=payload.risk_analysis or "",
         risk_mitigation=payload.risk_mitigation or "",
+        user_story_id=payload.user_story_id,
+        created_at=None,
     )
 
 
@@ -44,4 +54,6 @@ def task_to_ai_response(task: Task) -> AITaskResponse:
         category=category,
         risk_analysis=task.risk_analysis,
         risk_mitigation=task.risk_mitigation,
+        user_story_id=task.user_story_id,
+        created_at=datetime.fromisoformat(task.created_at) if task.created_at else None,
     )
