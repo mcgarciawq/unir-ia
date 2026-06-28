@@ -21,6 +21,74 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Docker
+
+### Build image
+
+```bash
+docker build -t unir-ia .
+```
+
+### Run container
+
+```bash
+docker run -p 8000:8000 --env-file .env unir-ia
+```
+
+The application will be available at:
+http://localhost:8000/user-stories
+http://localhost:8000/docs
+
+## Azure Container Registry
+
+The project is configured to publish the Docker image automatically to Azure Container Registry (ACR) using GitHub Actions.
+
+Container Registry: uniria.azurecr.io
+
+The publication process is fully automated after every push to the `main` branch.
+
+## Continuous Integration
+
+The repository includes a GitHub Actions workflow that automatically:
+
+- Checks out the source code.
+- Installs Python 3.13.
+- Installs project dependencies.
+- Executes all automated tests using pytest.
+- Builds the Docker image.
+- Publishes the image to Azure Container Registry.
+
+The Docker image is only published if all tests complete successfully.
+
+## GitHub Secrets
+
+Sensitive information is never stored in the repository.
+
+The pipeline uses GitHub Secrets to authenticate against Azure Container Registry.
+
+Required secrets:
+
+- ACR_LOGIN_SERVER
+- ACR_USERNAME
+- ACR_PASSWORD
+
+
+##CI/CD Architecture
+
+```text
+Developer
+    │
+git push
+    │
+    ▼
+GitHub Actions
+    │
+    ├── Install dependencies
+    ├── Build Docker image
+    ├── Execute tests
+    └── Push image to Azure Container Registry
+```
+
 ## Quick start
 
 1. Create and activate the virtual environment.

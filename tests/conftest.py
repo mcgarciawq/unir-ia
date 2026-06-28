@@ -1,5 +1,10 @@
 import sys
 from pathlib import Path
+
+# Add the project root to Python path so pytest can find src module
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from unittest.mock import patch
 
 import pytest
@@ -10,14 +15,9 @@ from sqlalchemy.pool import StaticPool
 
 from src.core.database import Base
 from src.main import app
-from src.models import task, user_story  # noqa: F401
 from src.models.enums import PriorityEnum
 from src.models.schemas import UserStoryCreate
 from src.models.user_story import UserStory
-
-# Add the project root to Python path so pytest can find src module
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
 
 
 def sample_user_story_create() -> UserStoryCreate:
@@ -68,7 +68,7 @@ def sqlite_db():
 
 
 @pytest.fixture
-def api_client(sqlite_db):
+def api_client():
     """HTTP client with app lifespan bound to the isolated SQLite database."""
     with TestClient(app) as test_client:
         yield test_client

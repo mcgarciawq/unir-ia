@@ -40,9 +40,13 @@ def chrome_devtools_manifest() -> dict[str, Any]:
 
 
 @app.get("/", include_in_schema=False)
-def root() -> RedirectResponse:
-    """Redirect the root path to the user stories interface."""
-    return RedirectResponse(url="/user-stories")
+def root() -> dict[str, str]:
+    """Return a simple JSON message at the root path.
+
+    Tests expect a JSON body with a "message" key, so return a small
+    JSON object instead of redirecting to the UI.
+    """
+    return {"status": "ok", "message": "Task Manager API is running."}
 
 
 @app.get("/health")
