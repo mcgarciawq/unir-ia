@@ -77,6 +77,19 @@ class Task:
             "created_at": self.created_at,
         }
 
+    @staticmethod
+    def _normalize_category(category_raw: Any) -> str:
+        if not category_raw:
+            return ""
+
+        normalized = str(category_raw).strip()
+        lowered = normalized.lower()
+        for allowed_category in CategoryEnum:
+            if lowered in {allowed_category.value.lower(), allowed_category.name.lower()}:
+                return allowed_category.value
+
+        return CategoryEnum.other.value
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]):
         priority_raw = data.get("priority", "medium")
@@ -93,10 +106,7 @@ class Task:
         except ValueError:
             status = StatusEnum.pending
 
-        try:
-            category = CategoryEnum(category_raw).value if category_raw else ""
-        except ValueError:
-            category = CategoryEnum.other.value
+        category = cls._normalize_category(category_raw)
 
         return cls(
             id=data["id"],

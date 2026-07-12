@@ -26,7 +26,7 @@ def build_completion_kwargs(**overrides: float | int | None) -> dict[str, float 
         Dict: Filtered kwargs ready for `chat.completions.create(**kwargs)`.
 
     Example:
-        >>> kwargs = build_completion_kwargs(max_tokens=2048)
+        >>> kwargs = build_completion_kwargs(max_completion_tokens=2048)
         >>> # kwargs will contain only supported parameters with non-empty values
     """
     # Build the allowlist of supported parameters.
@@ -48,6 +48,7 @@ def build_completion_kwargs(**overrides: float | int | None) -> dict[str, float 
     param_map: dict[str, float | int | None] = {
         "temperature": config.AZURE_OPENAI_TEMPERATURE,
         "max_tokens": config.AZURE_OPENAI_MAX_TOKENS,
+        "max_completion_tokens": config.AZURE_OPENAI_MAX_TOKENS,
         "top_p": config.AZURE_OPENAI_TOP_P,
         "frequency_penalty": config.AZURE_OPENAI_FREQUENCY_PENALTY,
         "presence_penalty": config.AZURE_OPENAI_PRESENCE_PENALTY,

@@ -1,13 +1,13 @@
 # Task Manager API
 
-A FastAPI task manager with MySQL persistence, CRUD task operations, AI-assisted user story generation, and a Bootstrap UI served as static HTML with JavaScript.
+A FastAPI task manager with Azure SQL persistence (or MySQL fallback), CRUD task operations, AI-assisted user story generation, and a Bootstrap UI served as static HTML with JavaScript.
 
 ## Project structure
 
 - `src/main.py` - FastAPI application entry point.
 - `src/api/` - API router and endpoints.
 - `src/models/` - Domain model and Pydantic schemas.
-- `src/services/` - Persistence services using SQLAlchemy and MySQL.
+- `src/services/` - Persistence services using SQLAlchemy and Azure SQL (with MySQL fallback).
 - `src/managers/` - Business logic layer connecting API routes and services.
 - `src/core/` - Core utilities and shared configuration.
 - `static/` - Bootstrap UI (`user-stories.html`, `tasks.html`, CSS and JavaScript).
@@ -23,21 +23,31 @@ pip install -r requirements.txt
 
 ## Docker
 
-### Build image
+### Using Docker Compose (Recommended)
 
+**Build the image:**
 ```bash
-docker build -t unir-ia .
+docker-compose build
 ```
 
-### Run container
-
+**Initialize database tables (run once after first build):**
 ```bash
-docker run -p 8000:8000 --env-file .env unir-ia
+docker-compose run --rm uniria python init_db.py
+```
+
+**Run the application:**
+```bash
+docker-compose up
 ```
 
 The application will be available at:
-http://localhost:8000/user-stories
-http://localhost:8000/docs
+- UI: http://localhost:8000/user-stories
+- API Docs: http://localhost:8000/docs
+
+**Stop the container:**
+```bash
+docker-compose down
+```
 
 ## Azure Container Registry
 
@@ -46,6 +56,7 @@ The project is configured to publish the Docker image automatically to Azure Con
 Container Registry: uniria.azurecr.io
 
 The publication process is fully automated after every push to the `main` branch.
+Each image is published with two tags: `latest` and the Git commit SHA. Azure Container Apps is deployed with the SHA tag so every deployment can be traced back to the exact source revision.
 
 ## Continuous Integration
 
@@ -53,27 +64,48 @@ The repository includes a GitHub Actions workflow that automatically:
 
 - Checks out the source code.
 - Installs Python 3.13.
-- Installs project dependencies.
+- Installs development dependencies from `requirements-dev.txt`.
 - Executes all automated tests using pytest.
 - Builds the Docker image.
+- Starts the built Docker image and validates `GET /health` before publishing it.
 - Publishes the image to Azure Container Registry.
+- Deploys the image tagged with the commit SHA to Azure Container Apps.
+- Validates the deployed application with smoke tests against `/health`, `/health/db`, `/tasks/`, and `/user-stories/json`.
 
-The Docker image is only published if all tests complete successfully.
+The Docker image is only published if all tests complete successfully and the container starts correctly. The final runtime image installs `requirements.txt`; test tools such as pytest and httpx are kept in `requirements-dev.txt`.
 
 ## GitHub Secrets
 
 Sensitive information is never stored in the repository.
 
-The pipeline uses GitHub Secrets to authenticate against Azure Container Registry.
+The pipeline uses GitHub Secrets to authenticate against Azure, publish to Azure Container Registry, and deploy the Azure Container App.
 
-Required secrets:
+Required GitHub Secrets for the workflow:
 
+- RESOURCE_GROUP
+- CONTAINER_APP_NAME
 - ACR_LOGIN_SERVER
 - ACR_USERNAME
 - ACR_PASSWORD
+- IMAGE_REPOSITORY
+- AZURE_SUBSCRIPTION_ID
+- AZURE_BEARER_TOKEN
+- AZURE_SQL_CONNECTION_STRING
+- AZURE_OPENAI_API_KEY
+- AZURE_OPENAI_ENDPOINT
+- AZURE_OPENAI_DEPLOYMENT_NAME
 
+Optional GitHub Secrets for the app runtime:
 
-##CI/CD Architecture
+- AZURE_OPENAI_API_VERSION (defaults to `2024-02-15-preview` in the workflow)
+- AZURE_OPENAI_MAX_TOKENS (defaults to `2048` in the app)
+- AZURE_OPENAI_TEMPERATURE (defaults to `0.7` in the app)
+- AZURE_OPENAI_TOP_P (defaults to `0.9` in the app)
+- AZURE_OPENAI_SUPPORTED_PARAMS (useful for deployments that require `max_completion_tokens`)
+
+Azure Container App secrets are created or updated by the workflow from these GitHub Secrets. The deployment metadata secrets (`RESOURCE_GROUP`, `CONTAINER_APP_NAME`, `IMAGE_REPOSITORY`, `AZURE_SUBSCRIPTION_ID`, and `AZURE_BEARER_TOKEN`) are needed only in GitHub Actions, not inside the running app.
+
+## CI/CD Architecture
 
 ```text
 Developer
@@ -83,16 +115,20 @@ git push
     ▼
 GitHub Actions
     │
+    ├── Validate required secrets
     ├── Install dependencies
+    ├── Execute pytest
     ├── Build Docker image
-    ├── Execute tests
-    └── Push image to Azure Container Registry
+    ├── Smoke test local container (/health)
+    ├── Push image to Azure Container Registry
+    ├── Deploy commit-SHA image to Azure Container Apps
+    └── Validate deployed endpoints
 ```
 
 ## Quick start
 
 1. Create and activate the virtual environment.
-2. Install dependencies with `pip install -r requirements.txt`.
+2. Install dependencies with `pip install -r requirements-dev.txt` for local development and testing. Use `requirements.txt` for runtime-only installations.
 3. Copy `.env.example` to `.env` and fill in the required values.
 4. The compiled stylesheet is already available at `static/css/style.css`, so you can start the app directly.
 
@@ -163,11 +199,29 @@ AZURE_OPENAI_SUPPORTED_PARAMS=
 The application loads these values automatically from `.env` when it starts.
 Leave `AZURE_OPENAI_SUPPORTED_PARAMS` empty for models that reject optional generation parameters such as `temperature`, `top_p`, or `max_tokens`.
 
-## Database (MySQL) configuration
+## Database configuration
 
-The project supports a MySQL backend via SQLAlchemy. Copy `.env.example` to `.env` and update the MySQL values for your local environment.
+The project supports **Azure SQL** as primary database, with **MySQL as fallback**. The database choice is determined by priority in `src/core/config.py`:
 
-A recommended configuration is:
+1. **Azure SQL** (if `AZURE_SQL_CONNECTION_STRING` is set in `.env`)
+2. **DATABASE_URL** (if set)
+3. **MySQL** (default fallback)
+
+### Azure SQL Configuration (Recommended)
+
+Set the `AZURE_SQL_CONNECTION_STRING` in `.env`:
+
+```ini
+AZURE_SQL_CONNECTION_STRING=Driver={ODBC Driver 18 for SQL Server};Server=tcp:your-server.database.windows.net,1433;Database=your-db;Uid=your-user;Pwd=your-password;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;
+```
+
+**Requirements:**
+- ODBC Driver 18 for SQL Server installed on your system
+- Azure SQL Database created and accessible
+
+### MySQL Configuration (Fallback)
+
+If `AZURE_SQL_CONNECTION_STRING` is not set, the application uses these MySQL environment variables:
 
 ```ini
 MYSQL_HOST=localhost
@@ -175,28 +229,24 @@ MYSQL_PORT=3306
 MYSQL_USER=task_manager
 MYSQL_PASSWORD=mi_password
 MYSQL_DATABASE=task_manager
-SQLALCHEMY_ECHO=false
 ```
 
-If you prefer to use `root`, set `MYSQL_USER=root` and `MYSQL_PASSWORD=<your-root-password>`.
+**Docker deployment:**
+When deployed in Docker (Linux), the application connects to Azure SQL perfectly via pyodbc.
 
-The connection URI is assembled in `src/core/config.py` as `SQLALCHEMY_DATABASE_URI`.
+### Cloud persistence and runtime secrets
 
-### Create the database and tables
+In Azure Container Apps, the application is stateless: the container can be restarted or replaced at any time. Persistent data is stored outside the container in the configured relational database.
 
-1. Create the database in MySQL:
+- In cloud deployments, the workflow injects `AZURE_SQL_CONNECTION_STRING` as an Azure Container App secret, so user stories and tasks are stored in Azure SQL.
+- Data survives container restarts because it is persisted in Azure SQL, not in the container filesystem.
+- Azure OpenAI credentials are also injected as Container App secrets: `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, and `AZURE_OPENAI_DEPLOYMENT_NAME`.
+- Optional generation settings such as `AZURE_OPENAI_API_VERSION`, `AZURE_OPENAI_MAX_TOKENS`, `AZURE_OPENAI_TEMPERATURE`, `AZURE_OPENAI_TOP_P`, and `AZURE_OPENAI_SUPPORTED_PARAMS` can be configured through GitHub Secrets.
+- Without Azure OpenAI credentials, health checks and database-backed read/write endpoints can still be tested, but AI generation endpoints return a configuration error.
 
-```bash
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS task_manager CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-```
+The deployment workflow validates both the basic application health and the database-backed story listing endpoint after each Azure Container Apps deployment.
 
-2. (Recommended) Create a dedicated MySQL user for the project:
-
-```bash
-mysql -u root -p -e "CREATE USER IF NOT EXISTS 'task_manager'@'localhost' IDENTIFIED BY 'mi_password'; GRANT ALL PRIVILEGES ON task_manager.* TO 'task_manager'@'localhost'; FLUSH PRIVILEGES;"
-```
-
-3. Create the required tables from the project root:
+Once connected to your database, create the required tables:
 
 ```bash
 .venv/bin/python - <<'PY'
@@ -208,16 +258,6 @@ Base.metadata.create_all(bind=engine)
 print('Tables created successfully.')
 PY
 ```
-
-If your virtual environment is already active, `python - <<'PY'` also works.
-
-### Troubleshooting
-
-- `Access denied` means the MySQL user/password in `.env` are incorrect for the configured host.
-- `Table 'task_manager.user_stories' doesn't exist` means the database exists but the SQLAlchemy tables were not created yet.
-- Use the table creation command above to create `user_stories` and `tasks`.
-
-If you prefer migrations, integrate Alembic and generate migrations against `src/core/database.py`.
 
 ## Run
 
@@ -305,13 +345,14 @@ AI endpoints also persist their enriched task results. If the request includes a
 
 ## Persistence
 
-User stories and tasks are stored in the configured MySQL database through SQLAlchemy models.
+User stories and tasks are stored in the configured database (Azure SQL or MySQL) through SQLAlchemy models.
 
 ## Tests
 
 Run all tests with:
 
 ```bash
+pip install -r requirements-dev.txt
 pytest tests
 ```
 
@@ -329,7 +370,7 @@ The project includes:
 
 ## Notes
 
-- `TaskManager` uses SQLAlchemy/MySQL for application persistence.
+- `TaskManager` uses SQLAlchemy with Azure SQL or MySQL for application persistence.
 - `Task` implements `to_dict()` and `from_dict()` to bridge domain objects and API schemas.
 - The API layer is implemented with `APIRouter` and Pydantic request validation.
 
@@ -343,3 +384,12 @@ The project includes:
 
 **Problem:** Virtual environment not activating
 - **Solution:** Ensure you're using the correct Python version and the `.venv` folder exists in the project root.
+
+**Problem:** `pyodbc` timeout when connecting to Azure SQL on macOS
+- **Cause:** pyodbc has known issues with SQL Server connections on macOS
+- **Solution for testing:** Use `sqlcmd` to verify connectivity:
+  ```bash
+  sqlcmd -S uniria.database.windows.net -U sqladmin -P 'Root1234' -d unirIA -Q "SELECT @@version"
+  ```
+- **Solution for production:** Docker/Linux deployments work perfectly with pyodbc. No issues in containerized environments.
+- **Workaround for local development:** Keep JSON persistence in `.env` (remove `AZURE_SQL_CONNECTION_STRING`) during development, then switch to Azure SQL when deploying.

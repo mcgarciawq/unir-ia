@@ -2,20 +2,25 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 from src.api.tasks import router as tasks_router
 from src.api.ai_tasks import router as ai_tasks_router
 from src.api.user_stories import router as user_stories_router
-from src.core.config import API_TITLE, API_VERSION
-from src.core.database import Base, engine
+from src.core.config import API_TITLE, API_VERSION, SKIP_RAG_INIT
+from src.core import database
+from src.rag.rag_manager import RAGManager
+
+engine = database.engine
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    """Create database tables on application startup."""
-    Base.metadata.create_all(bind=engine)
+    """Initialize application resources on startup."""
+    database.Base.metadata.create_all(bind=database.engine)
+    if not SKIP_RAG_INIT:
+        RAGManager.initialize()
     yield
 
 
@@ -53,3 +58,14 @@ def root() -> dict[str, str]:
 def health_check() -> dict[str, str]:
     """Return a simple health check response."""
     return {"status": "ok", "message": "Task Manager API is running."}
+
+
+@app.get("/health/db")
+def database_health_check() -> dict[str, str]:
+    """Return a database connectivity health check response."""
+    try:
+        with database.SessionLocal() as session:
+            session.execute(text("SELECT 1"))
+    except Exception as error:
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {type(error).__name__}") from error
+    return {"status": "ok", "message": "Database connection is healthy."}

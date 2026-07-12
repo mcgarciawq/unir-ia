@@ -87,15 +87,42 @@ function formatApiError(detail) {
   return String(detail);
 }
 
-function setGenerateButtonsLoading(isLoading) {
-  ["generate-tasks-btn", "generate-tasks-btn-side"].forEach((id) => {
+function setButtonLoading(button, isLoading, label) {
+  if (!button) return;
+  button.disabled = isLoading;
+  if (isLoading && button.dataset.defaultLabel) {
+    button.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>${label}`;
+  } else if (!isLoading && button.dataset.defaultLabel) {
+    button.innerHTML = button.dataset.defaultLabel;
+  }
+}
+
+function setPageLoading(isLoading, label = "Procesando...") {
+  const overlay = document.getElementById("task-loading-overlay");
+  if (overlay) {
+    const labelElement = overlay.querySelector(".loading-text");
+    if (labelElement) {
+      labelElement.textContent = label;
+    }
+
+    overlay.classList.toggle("d-none", !isLoading);
+    overlay.classList.toggle("d-flex", isLoading);
+    overlay.style.display = isLoading ? "flex" : "none";
+    overlay.style.visibility = isLoading ? "visible" : "hidden";
+  }
+
+  document.body.style.cursor = isLoading ? "wait" : "";
+  document.body.classList.toggle("overflow-hidden", isLoading);
+
+  ["generate-tasks-btn", "generate-tasks-btn-side", "delete-story-btn"].forEach((id) => {
     const button = document.getElementById(id);
     if (!button) return;
-    button.disabled = isLoading;
-    button.innerHTML = isLoading
-      ? '<span class="spinner-border spinner-border-sm me-1"></span>Generando...'
-      : button.dataset.defaultLabel;
+    setButtonLoading(button, isLoading, button.dataset.defaultLabel?.replace(/<.*?>/g, "") || button.textContent.trim());
   });
+}
+
+function setGenerateButtonsLoading(isLoading) {
+  setPageLoading(isLoading, isLoading ? "Generando tareas..." : "Procesando...");
 }
 
 let currentStoryId = null;
@@ -103,6 +130,9 @@ let currentStoryId = null;
 async function deleteTask(taskId) {
   const confirmed = window.confirm(`¿Eliminar la tarea #${taskId}?`);
   if (!confirmed) return;
+
+  clearPageError();
+  setPageLoading(true, "Eliminando tarea...");
 
   try {
     const response = await fetch(`/tasks/${taskId}`, { method: "DELETE" });
@@ -113,6 +143,8 @@ async function deleteTask(taskId) {
     await loadStoryAndTasks(currentStoryId);
   } catch (error) {
     showPageError(error.message);
+  } finally {
+    setPageLoading(false);
   }
 }
 
@@ -149,6 +181,9 @@ async function deleteStory(storyId) {
   );
   if (!confirmed) return;
 
+  clearPageError();
+  setPageLoading(true, "Eliminando historia...");
+
   try {
     const response = await fetch(`/user-stories/${storyId}`, { method: "DELETE" });
     if (!response.ok) {
@@ -158,6 +193,7 @@ async function deleteStory(storyId) {
     window.location.href = "/user-stories";
   } catch (error) {
     showPageError(error.message);
+    setPageLoading(false);
   }
 }
 
@@ -198,16 +234,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const error = params.get("error");
   if (error) showPageError(decodeURIComponent(error));
 
-  ["generate-tasks-btn", "generate-tasks-btn-side"].forEach((id) => {
+  ["generate-tasks-btn", "generate-tasks-btn-side", "delete-story-btn"].forEach((id) => {
     const button = document.getElementById(id);
     if (!button) return;
     button.dataset.defaultLabel = button.innerHTML;
+  });
+
+  ["generate-tasks-btn", "generate-tasks-btn-side"].forEach((id) => {
+    const button = document.getElementById(id);
+    if (!button) return;
     button.addEventListener("click", () => generateTasks(storyId));
   });
 
-  document.getElementById("delete-story-btn").addEventListener("click", () => {
-    deleteStory(storyId);
-  });
+  const deleteStoryButton = document.getElementById("delete-story-btn");
+  if (deleteStoryButton) {
+    deleteStoryButton.addEventListener("click", () => {
+      deleteStory(storyId);
+    });
+  }
 
   document.getElementById("tasks-list").addEventListener("click", (event) => {
     const button = event.target.closest("[data-delete-task-id]");

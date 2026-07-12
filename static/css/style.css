@@ -86,6 +86,14 @@ a:hover {
   --bs-btn-disabled-border-color: #e91e8c;
 }
 
+button,
+.btn,
+.btn-primary,
+.btn-outline-primary,
+.btn-outline-danger {
+  cursor: pointer;
+}
+
 .text-primary {
   color: #e91e8c !important;
 }

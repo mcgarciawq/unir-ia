@@ -11,6 +11,7 @@ from src.managers.ai_task_manager import AIValidationError
 from src.models.enums import CategoryEnum, PriorityEnum, StatusEnum
 from src.models.schemas import TaskCreate, UserStoryCreate
 from src.models.user_story import UserStory
+from src.rag.rag_manager import RAGManager
 
 
 class AIStoryManager:
@@ -19,9 +20,17 @@ class AIStoryManager:
     @staticmethod
     def generate_user_story_from_prompt(prompt: str) -> UserStoryCreate:
         try:
+            context = RAGManager.retrieve(
+                query=prompt,
+                doc_type="story",
+            )
+
             response = complete(
                 system_prompt="You are a product owner who writes clear user stories.",
-                user_prompt=build_user_story_prompt(prompt),
+                user_prompt=build_user_story_prompt(
+                    prompt=prompt,
+                    context=context,
+                ),
             )
         except LLMNotConfiguredError:
             raise
@@ -29,14 +38,24 @@ class AIStoryManager:
             raise exc
 
         payload = AIStoryManager._parse_json_object(response)
+        payload = AIStoryManager._sanitize_story_payload(payload)
         return UserStoryCreate(**payload)
 
     @staticmethod
     def generate_tasks_for_story(user_story: UserStory, task_count: int = 3) -> list[TaskCreate]:
         try:
+            context = RAGManager.retrieve(
+                query=user_story.description,
+                doc_type="task",
+            )
+
             response = complete(
                 system_prompt="You are a project manager generating technical tasks from a user story.",
-                user_prompt=build_tasks_from_story_prompt(user_story, task_count),
+                user_prompt=build_tasks_from_story_prompt(
+                    user_story=user_story,
+                    task_count=task_count,
+                    context=context,
+                ),
             )
         except LLMNotConfiguredError:
             raise
@@ -95,6 +114,18 @@ class AIStoryManager:
             raise AIValidationError("Failed to parse JSON array from AI response.") from exc
 
     @staticmethod
+    def _sanitize_story_payload(raw_story: dict[str, Any]) -> dict[str, Any]:
+        story_points = raw_story.get("story_points")
+        if isinstance(story_points, (int, float)):
+            raw_story["story_points"] = max(1, min(8, int(story_points)))
+
+        effort_hours = raw_story.get("effort_hours")
+        if isinstance(effort_hours, (int, float)):
+            raw_story["effort_hours"] = max(0.0, float(effort_hours))
+
+        return raw_story
+
+    @staticmethod
     def _sanitize_task_payload(raw_task: dict[str, Any]) -> dict[str, Any]:
         if "status" not in raw_task:
             raw_task["status"] = StatusEnum.pending.value
@@ -125,7 +156,10 @@ class AIStoryManager:
 
         normalized = str(category).strip().lower()
         for allowed_category in CategoryEnum:
-            if normalized in {allowed_category.value.lower(), allowed_category.name.lower()}:
+            if normalized in {
+                allowed_category.value.lower(),
+                allowed_category.name.lower(),
+            }:
                 return allowed_category.value
 
         return CategoryEnum.other.value

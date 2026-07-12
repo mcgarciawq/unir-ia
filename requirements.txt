@@ -1,10 +1,12 @@
 fastapi
 uvicorn
 pydantic
-pytest
-httpx
 openai
 python-dotenv
 sqlalchemy
+pyodbc
 pymysql
 python-multipart
+numpy
+faiss-cpu
+sentence-transformers

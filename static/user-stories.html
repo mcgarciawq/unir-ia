@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body class="d-flex flex-column min-vh-100">
+    <div id="story-loading-overlay" class="position-fixed top-0 start-0 vw-100 vh-100 d-none bg-white bg-opacity-75 d-flex align-items-center justify-content-center" style="z-index: 1050;">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="mt-2 fw-semibold">Generando historia...</div>
+        </div>
+    </div>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-semibold" href="/user-stories">
@@ -53,7 +59,7 @@
                     <p class="text-muted mb-4">
                         Escribe brevemente la necesidad del producto y el sistema generará una historia lista para trabajar.
                     </p>
-                    <form method="post" action="/user-stories">
+                    <form id="story-form" method="post" action="/user-stories">
                         <div class="mb-3">
                             <label for="prompt" class="form-label fw-semibold">Tu idea o requisito</label>
                             <textarea
@@ -65,7 +71,7 @@
                                 required
                             ></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" id="generate-story-btn" class="btn btn-primary">
                             <i class="bi bi-magic me-1"></i>Generar historia
                         </button>
                     </form>

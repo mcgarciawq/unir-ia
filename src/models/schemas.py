@@ -12,15 +12,19 @@ class UserStoryBase(BaseModel):
     reason: str
     description: str
     priority: PriorityEnum
-    story_points: int = Field(..., ge=1, le=8)
     effort_hours: float = Field(..., ge=0)
 
 
 class UserStoryCreate(UserStoryBase):
     """Schema for creating a new user story."""
 
+    story_points: int = Field(..., ge=1, le=8)
+
 
 class UserStoryResponse(UserStoryBase):
+    """Schema for returning a user story."""
+
+    story_points: int = Field(..., ge=1)
     id: int
     created_at: datetime | None = None
 

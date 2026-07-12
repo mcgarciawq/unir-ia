@@ -60,15 +60,27 @@ def delete_user_story(story_id: int) -> dict[str, str]:
 
 
 @router.post("")
-def create_user_story(prompt: str = Form(...)):
+def create_user_story(request: Request, prompt: str = Form(...)):
     """Generate and persist a user story from a prompt."""
     try:
         story_data = AIStoryManager.generate_user_story_from_prompt(prompt)
         StoryService.create_user_story(story_data)
+        if _wants_json_response(request):
+            return {"detail": "User story created successfully."}
         return RedirectResponse(url="/user-stories", status_code=303)
     except HTTPException:
         raise
+    except LLMNotConfiguredError as error:
+        if _wants_json_response(request):
+            raise HTTPException(status_code=503, detail=str(error)) from error
+        return _redirect_with_error("/user-stories", str(error))
+    except LLMCallError as error:
+        if _wants_json_response(request):
+            raise HTTPException(status_code=502, detail=str(error)) from error
+        return _redirect_with_error("/user-stories", str(error))
     except Exception as error:
+        if _wants_json_response(request):
+            raise HTTPException(status_code=500, detail=str(error)) from error
         return _redirect_with_error("/user-stories", str(error))
 
 

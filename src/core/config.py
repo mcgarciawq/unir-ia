@@ -1,6 +1,7 @@
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+from urllib.parse import quote_plus
 
 # Load environment variables from .env (if present)
 load_dotenv()
@@ -11,6 +12,10 @@ DATA_PATH: Path = BASE_DIR / "data" / "tasks.json"
 
 API_TITLE: str = "Task Manager API"
 API_VERSION: str = "1.0.0"
+
+
+# RAG PATH
+KNOWLEDGE_PATH: Path = BASE_DIR / "knowledge"
 
 
 # Azure OpenAI Configuration
@@ -40,23 +45,38 @@ AZURE_OPENAI_PRESENCE_PENALTY: float | None = _opt_float(os.getenv("AZURE_OPENAI
 # Supported params as a list for easier checking in code
 _supported_params_raw: str = os.getenv(
     "AZURE_OPENAI_SUPPORTED_PARAMS",
-    "temperature,max_tokens,top_p",
+    "temperature,max_completion_tokens,top_p",
 )
 AZURE_OPENAI_SUPPORTED_PARAMS: list[str] = [p.strip() for p in _supported_params_raw.split(",") if p.strip()]
 
-# SQLAlchemy / MySQL configuration
+# Database Configuration (Priority: Azure SQL > DATABASE_URL > MySQL fallback)
 MYSQL_HOST: str = os.getenv("MYSQL_HOST", "localhost")
 MYSQL_PORT: int = int(os.getenv("MYSQL_PORT", "3306"))
 MYSQL_USER: str = os.getenv("MYSQL_USER", "root")
 MYSQL_PASSWORD: str = os.getenv("MYSQL_PASSWORD", "")
 MYSQL_DATABASE: str = os.getenv("MYSQL_DATABASE", "task_manager")
 DATABASE_URL: str | None = os.getenv("DATABASE_URL")
-SQLALCHEMY_DATABASE_URI: str = os.getenv(
-    "SQLALCHEMY_DATABASE_URI",
-    DATABASE_URL
-    or f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}",
-)
+AZURE_SQL_CONNECTION_STRING: str | None = os.getenv("AZURE_SQL_CONNECTION_STRING")
+
+def build_database_uri(
+    azure_sql_connection_string: str | None = AZURE_SQL_CONNECTION_STRING,
+    database_url: str | None = DATABASE_URL,
+) -> str:
+    """Build the SQLAlchemy database URI from the configured environment."""
+    if azure_sql_connection_string:
+        encoded_connection = quote_plus(azure_sql_connection_string)
+        return f"mssql+pyodbc:///?odbc_connect={encoded_connection}"
+    if database_url:
+        return database_url
+    return f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
+
+
+_database_uri = build_database_uri()
+
+SQLALCHEMY_DATABASE_URI: str = _database_uri
+
 SQLALCHEMY_ECHO: bool = os.getenv("SQLALCHEMY_ECHO", "false").strip().lower() in ("1", "true", "yes")
+SKIP_RAG_INIT: bool = os.getenv("SKIP_RAG_INIT", "false").strip().lower() in ("1", "true", "yes")
 
 
 def is_azure_openai_configured() -> bool:

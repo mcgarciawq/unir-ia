@@ -30,7 +30,13 @@
     </nav>
 
     <main class="flex-grow-1 py-4 py-lg-5">
-        <div class="container">
+        <div id="task-loading-overlay" class="position-fixed top-0 start-0 vw-100 vh-100 d-none bg-white bg-opacity-75 d-flex align-items-center justify-content-center" style="z-index: 1050;">
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 fw-semibold loading-text">Procesando...</div>
+            </div>
+        </div>
+        <div class="container position-relative">
             <div id="page-error" class="d-none mb-3"></div>
 
             <nav aria-label="breadcrumb" class="mb-3">

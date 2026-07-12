@@ -67,3 +67,20 @@ def test_task_from_dict_maps_unknown_priority_to_medium():
     task = Task.from_dict(data)
 
     assert task.priority == PriorityEnum.medium
+
+
+def test_task_from_dict_normalizes_category_values():
+    data: dict[str, object] = {
+        "id": 1,
+        "title": "Categorized Task",
+        "description": "A task with a lowercase category value.",
+        "priority": "medium",
+        "effort_hours": 1.0,
+        "status": "pending",
+        "assigned_to": "Tester",
+        "category": "frontend",
+    }
+
+    task = Task.from_dict(data)
+
+    assert task.category == CategoryEnum.frontend.value

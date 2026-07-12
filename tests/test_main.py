@@ -11,3 +11,12 @@ def test_read_root():
 def test_health_check():
     response = client.get("/health")
     assert response.status_code == 200
+
+
+def test_database_health_check(sqlite_db):
+    response = client.get("/health/db")
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "message": "Database connection is healthy.",
+    }

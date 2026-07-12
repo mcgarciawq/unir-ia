@@ -21,6 +21,10 @@ function showError(message) {
   `;
 }
 
+function clearError() {
+  showError("");
+}
+
 function renderStories(stories) {
   const list = document.getElementById("stories-list");
   const empty = document.getElementById("stories-empty");
@@ -76,11 +80,6 @@ function renderStories(stories) {
           </div>
           <div class="card-footer bg-white border-top-0 pt-0 pb-3 px-3">
             <div class="d-grid gap-2 d-sm-flex mb-2">
-              <form method="post" action="/user-stories/${story.id}/generate-tasks" class="flex-fill">
-                <button type="submit" class="btn btn-primary w-100">
-                  <i class="bi bi-list-task me-1"></i>Generar tareas
-                </button>
-              </form>
               <a href="/user-stories/${story.id}/tasks" class="btn btn-outline-primary flex-fill">
                 <i class="bi bi-eye me-1"></i>Ver tareas
               </a>
@@ -112,11 +111,38 @@ async function loadStories() {
   }
 }
 
+function setStoryLoading(isLoading) {
+  const form = document.getElementById("story-form");
+  const button = document.getElementById("generate-story-btn");
+  const overlay = document.getElementById("story-loading-overlay");
+
+  if (button) {
+    button.disabled = isLoading;
+    if (isLoading && button.dataset.defaultLabel) {
+      button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generando historia...';
+    } else if (!isLoading && button.dataset.defaultLabel) {
+      button.innerHTML = button.dataset.defaultLabel;
+    }
+  }
+
+  if (overlay) {
+    overlay.classList.toggle("d-none", !isLoading);
+  }
+
+  if (form) {
+    form.classList.toggle("pointer-events-none", isLoading);
+    form.classList.toggle("opacity-75", isLoading);
+  }
+}
+
 async function deleteStory(storyId) {
   const confirmed = window.confirm(
     `¿Eliminar la historia #${storyId}? También se borrarán todas sus tareas.`
   );
   if (!confirmed) return;
+
+  setStoryLoading(true);
+  clearError();
 
   try {
     const response = await fetch(`/user-stories/${storyId}`, { method: "DELETE" });
@@ -127,6 +153,8 @@ async function deleteStory(storyId) {
     await loadStories();
   } catch (error) {
     showError(error.message);
+  } finally {
+    setStoryLoading(false);
   }
 }
 
@@ -134,6 +162,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   const error = params.get("error");
   if (error) showError(decodeURIComponent(error));
+
+  const storyButton = document.getElementById("generate-story-btn");
+  if (storyButton) {
+    storyButton.dataset.defaultLabel = storyButton.innerHTML;
+  }
+
+  const storyForm = document.getElementById("story-form");
+  if (storyForm) {
+    storyForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setStoryLoading(true);
+      clearError();
+
+      const formData = new FormData(storyForm);
+      try {
+        const response = await fetch(storyForm.action, {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.detail || "No se pudo generar la historia.");
+        }
+
+        await loadStories();
+        storyForm.reset();
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        setStoryLoading(false);
+      }
+    });
+  }
 
   document.getElementById("stories-list").addEventListener("click", (event) => {
     const button = event.target.closest("[data-delete-story-id]");
